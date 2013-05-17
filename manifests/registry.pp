@@ -77,6 +77,7 @@ class glance::registry(
   $auth_protocol     = 'http',
   $keystone_tenant   = 'admin',
   $keystone_user     = 'admin',
+  $keystone_flavor   = 'keystone',
   $enabled           = true
 ) inherits glance {
 
@@ -141,11 +142,21 @@ class glance::registry(
 
   # keystone config
   if $auth_type == 'keystone' {
+
+    # Delete the current flavor setting if it is not configured.
+    # Grizzly can have a null value for the default pipeline.
+    if $keystone_flavor != '' {
+      $flavor_configured = 'present'
+    } else {
+      $flavor_configured = 'absent'
+    }
+
     glance_registry_config {
-      'paste_deploy/flavor':                  value => 'keystone';
-      'keystone_authtoken/admin_tenant_name': value => $keystone_tenant;
-      'keystone_authtoken/admin_user':        value => $keystone_user;
-      'keystone_authtoken/admin_password':    value => $keystone_password;
+      'paste_deploy/flavor':                  value  => $keystone_flavor,
+                                              ensure => $flavor_configured;
+      'keystone_authtoken/admin_tenant_name': value  => $keystone_tenant;
+      'keystone_authtoken/admin_user':        value  => $keystone_user;
+      'keystone_authtoken/admin_password':    value  => $keystone_password;
     }
   }
 
