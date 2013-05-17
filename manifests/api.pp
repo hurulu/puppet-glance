@@ -152,11 +152,21 @@ class glance::api(
 
   # keystone config
   if $auth_type == 'keystone' {
+
+    # Delete the current flavor setting if it is not configured.
+    # Grizzly can have a null value for the default pipeline.
+    if $pipeline != '' {
+      $flavor_configured = 'present'
+    } else {
+      $flavor_configured = 'absent'
+    }
+
     glance_api_config {
-      'paste_deploy/flavor':                  value => $pipeline;
-      'keystone_authtoken/admin_tenant_name': value => $keystone_tenant;
-      'keystone_authtoken/admin_user':        value => $keystone_user;
-      'keystone_authtoken/admin_password':    value => $keystone_password;
+      'keystone_authtoken/flavor':            value  => $keystone_tenant,
+                                              ensure => $flavor_configured;
+      'keystone_authtoken/admin_tenant_name': value  => $keystone_tenant;
+      'keystone_authtoken/admin_user':        value  => $keystone_user;
+      'keystone_authtoken/admin_password':    value  => $keystone_password;
     }
     glance_cache_config {
       'DEFAULT/auth_url':          value => $auth_url;
